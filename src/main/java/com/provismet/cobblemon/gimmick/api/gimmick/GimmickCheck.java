@@ -56,7 +56,16 @@ public interface GimmickCheck {
         boolean hasDynamax = false;
         boolean hasTeraOrb = false;
         ItemStack teraOrb = null;
-        for (ItemStack item : player.getEquippedItems()) {
+        for (ItemStack item : player.getInventory().main) {
+            if (Options.enabledMegaEvolution() && GimmickCheck.isKeyStone(item)) hasKeyStone = true;
+            if (Options.enabledZMoves() && GimmickCheck.isZRing(item)) hasZRing = true;
+            if (Options.enabledDynamax() && GimmickCheck.isDynamaxBand(item)) hasDynamax = true;
+            if (Options.enabledTerastal() && GimmickCheck.isTeraOrb(item)) {
+                hasTeraOrb = true;
+                teraOrb = item;
+            }
+        }
+        for (ItemStack item : player.getInventory().offHand) {
             if (Options.enabledMegaEvolution() && GimmickCheck.isKeyStone(item)) hasKeyStone = true;
             if (Options.enabledZMoves() && GimmickCheck.isZRing(item)) hasZRing = true;
             if (Options.enabledDynamax() && GimmickCheck.isDynamaxBand(item)) hasDynamax = true;

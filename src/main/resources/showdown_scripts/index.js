@@ -22,6 +22,8 @@ const conditions = require("./data/mods/cobblemon/conditions");
 const typechart = require("./data/mods/cobblemon/typechart");
 const scripts = require("./data/mods/cobblemon/scripts");
 
+const abilities = require("./data/abilities");
+
 const battleMap = new Map();
 const toID = Dex.toID;
 
@@ -51,6 +53,15 @@ function sendBattleMessage(battleId, messages) {
   for (const element of messages) {
     battleStream.write(element);
   }
+}
+
+function endBattle(battleId) {
+	const battleStream = battleMap.get(battleId);
+
+	if (battleStream != null) {
+		battleStream._writeEnd();
+		battleMap.delete(battleId);
+	}
 }
 
 function getTypeChart() {
@@ -123,3 +134,22 @@ function receiveScriptData(scriptId, scriptData) {
 function receiveHeldItemData(itemId, itemData) {
   items.Items[itemId] = eval(`(${itemData})`);
 }
+
+// Rewrites the ability to use a different event trigger, that way the form change works.
+abilities.Abilities["battlebond"] = {
+  onSourceAfterFaint(length, target, source, effect) {
+    if (effect?.effectType !== "Move")
+      return;
+    if (source.abilityState.battleBondTriggered)
+      return;
+    if (source.species.id === "greninjabond" && source.hp && !source.transformed && source.side.foePokemonLeft()) {
+      this.boost({ atk: 1, spa: 1, spe: 1 }, source, source, this.effect);
+      source.formeChange("Greninja-Ash")
+      source.abilityState.battleBondTriggered = true;
+    }
+  },
+  flags: { failroleplay: 1, noreceiver: 1, noentrain: 1, notrace: 1, failskillswap: 1, cantsuppress: 1 },
+  name: "Battle Bond",
+  rating: 3.5,
+  num: 210
+};
